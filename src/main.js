@@ -1,28 +1,64 @@
 import { atlas } from './data.js';
 const app=document.querySelector('#app');let selected=atlas.families[0]?.id;let q='';let category='All';
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
 const cats=()=>['All',...new Set(atlas.families.map(f=>f.categoryName||f.category))];
 function filtered(){return atlas.families.filter(f=>(category==='All'||(f.categoryName||f.category)===category)&&(!q||JSON.stringify(f).toLowerCase().includes(q.toLowerCase())))}
-function typePreview(f){switch(f.id){
-case 'split-mask-reveal':return `<div class="pv split-mask"><span>SPLIT</span><span>MASK</span><span>REVEAL</span></div>`;
-case 'letter-wave':return `<div class="pv letter-wave">${'KINETIC'.split('').map((c,i)=>`<span style="--i:${i}">${c}</span>`).join('')}</div>`;
-case 'echo-outline-type':return `<div class="pv echo-outline"><span>ECHO</span><span>ECHO</span><span>ECHO</span><strong>ECHO</strong></div>`;
-case 'scroll-scrubbed-copy':return `<div class="pv scrub-copy"><span>SCROLL</span><span>TO</span><span>READ</span><span>THE</span><span>STORY</span></div>`;
-case 'variable-font-stretch':return `<div class="pv variable-stretch">STRETCH</div>`;
-case 'text-scramble-decode':return `<div class="pv scramble" data-text="DECODE">D3C0D#</div>`;
-case 'circular-type-orbit':return `<div class="pv orbit-type"><div>ORBIT • TYPE • ORBIT • TYPE •</div></div>`;
-case 'marquee-type-collision':return `<div class="pv marquee"><span>MOTION MOTION MOTION</span><span>COLLISION COLLISION</span></div>`;
-case 'type-depth-parallax':return `<div class="pv depth-type"><span>DEPTH</span><span>DEPTH</span><span>DEPTH</span></div>`;
-case 'type-perspective-corridor':return `<div class="pv corridor"><span>ENTER</span><span>THE</span><span>TYPE</span></div>`;
-case 'type-clip-image':return `<div class="pv clip-type">MEDIA</div>`;
-case 'type-liquid-mask':return `<div class="pv liquid-type">LIQUID</div>`;
-case 'type-pixel-dissolve':return `<div class="pv pixel-type">PIXEL</div>`;
-case 'type-shard-break':return `<div class="pv shard-type"><span>S</span><span>H</span><span>A</span><span>R</span><span>D</span></div>`;
-case 'type-shadow-trail':return `<div class="pv shadow-trail">TRAIL</div>`;
-case 'type-blur-focus':return `<div class="pv blur-focus"><span>FOCUS</span><span>SHIFT</span><span>DEPTH</span></div>`;
-default:return `<div class="type-preview"><span>${esc(f.nameEn.split(' ')[0]||'TYPE')}</span><strong>${esc(f.nameEn.split(' ').slice(1).join(' ')||'MOTION')}</strong></div>`}}
-function scrollPreview(f){if(f.id.includes('horizontal-gallery'))return `<div class="scroll-preview horiz"><i></i><i></i><i></i><i></i></div>`;if(f.id.includes('camera')||f.id.includes('tunnel')||f.id.includes('depth'))return `<div class="pv scroll-camera"><i></i><i></i><i></i><b>CAMERA</b></div>`;if(f.id.includes('mask')||f.id.includes('reveal')||f.id.includes('crop'))return `<div class="pv scroll-mask"><i></i><b>REVEAL</b></div>`;if(f.id.includes('video')||f.id.includes('sequence'))return `<div class="pv scroll-video"><div class="frame"></div><div class="progress"></div></div>`;return `<div class="scroll-preview"><i></i><i></i><i></i></div>`}
-function interactionPreview(f){if(f.id.includes('magnetic'))return `<div class="pv magnetic"><button>MAGNETIC</button><i></i></div>`;if(f.id.includes('trail'))return `<div class="pv trail"><i></i><i></i><i></i><i></i></div>`;if(f.id.includes('lens')||f.id.includes('xray')||f.id.includes('spotlight'))return `<div class="pv lens"><div class="lens-core">LENS</div></div>`;if(f.id.includes('ripple'))return `<div class="pv ripple"><i></i><i></i><i></i></div>`;if(f.id.includes('tilt')||f.id.includes('card'))return `<div class="pv tilt-card">CARD</div>`;return `<div class="pointer-preview"><i></i><b>${esc(f.nameEn.toUpperCase())}</b></div>`}
-function preview(f){if(f.category==='type')return typePreview(f);if(f.category==='scroll')return scrollPreview(f);if(f.category==='interaction')return interactionPreview(f);return `<div class=orb></div><div class=ring></div><div class="family-mark">${esc(f.nameEn)}</div>`}
+const P={
+'split-mask-reveal':()=>`<div class="pv split-mask"><span>SPLIT</span><span>MASK</span><span>REVEAL</span></div>`,
+'letter-wave':()=>`<div class="pv letter-wave">${'KINETIC'.split('').map((c,i)=>`<span style="--i:${i}">${c}</span>`).join('')}</div>`,
+'echo-outline-type':()=>`<div class="pv echo-outline"><span>ECHO</span><span>ECHO</span><span>ECHO</span><strong>ECHO</strong></div>`,
+'scroll-scrubbed-copy':()=>`<div class="pv scrub-copy"><span>SCROLL</span><span>TO</span><span>READ</span><span>THE</span><span>STORY</span></div>`,
+'variable-font-stretch':()=>`<div class="pv variable-stretch">STRETCH</div>`,
+'text-scramble-decode':()=>`<div class="pv scramble">D3C0D#</div>`,
+'circular-type-orbit':()=>`<div class="pv orbit-type"><div>ORBIT • TYPE • ORBIT • TYPE •</div></div>`,
+'marquee-type-collision':()=>`<div class="pv marquee"><span>MOTION MOTION MOTION</span><span>COLLISION COLLISION</span></div>`,
+'type-depth-parallax':()=>`<div class="pv depth-type"><span>DEPTH</span><span>DEPTH</span><span>DEPTH</span></div>`,
+'type-perspective-corridor':()=>`<div class="pv corridor"><span>ENTER</span><span>THE</span><span>TYPE</span></div>`,
+'type-pixel-dissolve':()=>`<div class="pv pixel-type">PIXEL</div>`,
+'type-shard-break':()=>`<div class="pv shard-type"><span>S</span><span>H</span><span>A</span><span>R</span><span>D</span></div>`,
+'type-shadow-trail':()=>`<div class="pv shadow-trail">TRAIL</div>`,
+'type-blur-focus':()=>`<div class="pv blur-focus"><span>FOCUS</span><span>SHIFT</span><span>DEPTH</span></div>`,
+'scroll-sticky-chapter':()=>`<div class="pv sticky-chapter"><aside>01<br>02<br>03</aside><div><b>CHAPTER</b><span>STICKY STATE SWITCH</span></div></div>`,
+'scroll-horizontal-gallery':()=>`<div class="pv horizontal-gallery"><div class="gallery-track"><i>01</i><i>02</i><i>03</i><i>04</i></div></div>`,
+'scroll-layered-cards':()=>`<div class="pv layered-cards"><i>01</i><i>02</i><i>03</i></div>`,
+'scroll-sticky-crop-reveal':()=>`<div class="pv crop-reveal"><i></i><b>CROP → FULL</b></div>`,
+'scroll-stacked-viewport':()=>`<div class="pv viewport-stack"><i>01</i><i>02</i><i>03</i></div>`,
+'scroll-camera-orbit':()=>`<div class="pv camera-orbit"><i class="object">3D</i><i class="path"></i><b>ORBIT</b></div>`,
+'scroll-camera-dolly':()=>`<div class="pv camera-dolly"><i></i><i></i><i></i><b>DOLLY IN</b></div>`,
+'scroll-camera-roll':()=>`<div class="pv camera-roll"><div>ROLL</div></div>`,
+'scroll-depth-planes':()=>`<div class="pv depth-planes"><i>01</i><i>02</i><i>03</i><b>DEPTH</b></div>`,
+'scroll-tunnel-gallery':()=>`<div class="pv tunnel-gallery"><i></i><i></i><i></i><i></i><b>TUNNEL</b></div>`,
+'scroll-mask-wipe':()=>`<div class="pv mask-wipe"><i></i><b>WIPE</b></div>`,
+'scroll-circle-reveal':()=>`<div class="pv circle-reveal"><i></i><b>REVEAL</b></div>`,
+'scroll-image-slice-reveal':()=>`<div class="pv slice-reveal"><i></i><i></i><i></i><i></i></div>`,
+'scroll-curtain-reveal':()=>`<div class="pv curtain"><i></i><i></i><b>OPEN</b></div>`,
+'scroll-video-scrub':()=>`<div class="pv video-scrub"><div>VIDEO</div><span></span></div>`,
+'scroll-image-sequence':()=>`<div class="pv sequence"><b>01</b><b>02</b><b>03</b><span>FRAME SEQUENCE</span></div>`,
+'scroll-parallax-layers':()=>`<div class="pv parallax"><i></i><i></i><i></i><b>PARALLAX</b></div>`,
+'scroll-depth-blur-parallax':()=>`<div class="pv parallax blur"><i></i><i></i><i></i><b>DEPTH BLUR</b></div>`,
+'scroll-reverse-parallax':()=>`<div class="pv reverse-parallax"><i>←</i><i>→</i><i>←</i></div>`,
+'scroll-3d-card-parallax':()=>`<div class="pv card-parallax"><i>01</i><i>02</i><i>03</i></div>`,
+'scroll-velocity-skew':()=>`<div class="pv velocity-skew"><b>VELOCITY</b></div>`,
+'scroll-velocity-blur':()=>`<div class="pv velocity-blur"><b>VELOCITY</b><b>VELOCITY</b><b>VELOCITY</b></div>`,
+'scroll-velocity-stretch':()=>`<div class="pv velocity-stretch"><b>STRETCH</b></div>`,
+'scroll-velocity-trail':()=>`<div class="pv velocity-trail"><i></i><i></i><i></i><i></i></div>`,
+'cursor-magnetic-button':()=>`<div class="pv magnetic"><button>MAGNETIC</button><i></i></div>`,
+'cursor-gravity-field':()=>`<div class="pv gravity-field"><b>●</b>${Array.from({length:8},(_,i)=>`<i style="--i:${i}"></i>`).join('')}</div>`,
+'cursor-repel-field':()=>`<div class="pv repel-field"><b>●</b>${Array.from({length:8},(_,i)=>`<i style="--i:${i}"></i>`).join('')}</div>`,
+'cursor-image-trail':()=>`<div class="pv image-trail"><i>1</i><i>2</i><i>3</i><i>4</i></div>`,
+'cursor-text-trail':()=>`<div class="pv text-trail"><i>M</i><i>O</i><i>V</i><i>E</i></div>`,
+'cursor-particle-trail':()=>`<div class="pv particle-trail">${Array.from({length:14},()=>'<i></i>').join('')}</div>`,
+'cursor-smoke-trail':()=>`<div class="pv smoke-trail"><i></i><i></i><i></i></div>`,
+'cursor-lens-magnify':()=>`<div class="pv magnify"><b>DETAIL DETAIL DETAIL</b><i>DETAIL</i></div>`,
+'cursor-xray':()=>`<div class="pv xray"><b>SURFACE</b><i>INSIDE</i></div>`,
+'cursor-refraction-lens':()=>`<div class="pv refraction"><b>REFRACTION</b><i></i></div>`,
+'cursor-spotlight':()=>`<div class="pv spotlight"><b>DISCOVER</b><i></i></div>`,
+'cursor-distortion-field':()=>`<div class="pv distortion"><b>DISTORT</b><i></i></div>`,
+'cursor-ripple':()=>`<div class="pv ripple"><i></i><i></i><i></i></div>`,
+'cursor-liquid-push':()=>`<div class="pv liquid-push"><i></i><b>FLUID</b></div>`,
+'hover-3d-tilt':()=>`<div class="pv tilt-card">TILT</div>`,
+'drag-infinite-gallery':()=>`<div class="pv infinite-gallery"><i>01</i><i>02</i><i>03</i><i>04</i><i>05</i></div>`
+};
+function preview(f){const renderer=P[f.id];if(renderer)return renderer();return `<div class="pv unmapped"><span>PREVIEW NOT MAPPED</span><b>${esc(f.nameEn)}</b><small>${esc(f.id)}</small></div>`}
 function render(){const a=filtered();let f=atlas.families.find(x=>x.id===selected&&a.includes(x))||a[0];selected=f?.id||null;app.innerHTML=`<header><div><b>MEEU / WEB EFFECT ATLAS</b><small>v${atlas.version} · ${atlas.familyCount} families · ${atlas.variantCount} variants</small></div><input id=q placeholder="Search families, variants, tech..." value="${esc(q)}"></header><main><aside class=menu><div class=cats>${cats().map(c=>`<button data-cat="${esc(c)}" class="chip ${c===category?'on':''}">${esc(c)}</button>`).join('')}</div><div class=result>${a.length} families</div>${a.map(x=>`<button data-id="${x.id}" class="item ${x.id===selected?'on':''}"><b>${esc(x.nameJa)}</b><small>${esc(x.categoryName||x.category)} / ${esc(x.subcategory)} · ${x.variants.length} variant${x.variants.length>1?'s':''}</small></button>`).join('')}</aside><section><div class=stage>${f?preview(f):'<p>No results</p>'}</div></section><aside class=detail>${f?`<h2>${esc(f.nameJa)}</h2><p class=en>${esc(f.nameEn)}</p><p>${esc(f.description)}</p><div class=badges><span>${esc(f.priority)}</span><span>${esc(f.difficulty)}</span><span>${esc(f.load)}</span></div><h3>VARIANTS · ${f.variants.length}</h3>${f.variants.map(v=>`<div class=variant><b>${esc(v.nameJa)}</b><small>${esc(v.nameEn)}</small></div>`).join('')}<h3>TECH</h3><p>${[].concat(f.tech||[]).map(esc).join(' / ')}</p>`:''}</aside></main>`;document.querySelector('#q').oninput=e=>{q=e.target.value;render()};document.querySelector('.menu').onclick=e=>{const cat=e.target.closest('[data-cat]'),b=e.target.closest('[data-id]');if(cat){category=cat.dataset.cat;selected=null;render()}else if(b){selected=b.dataset.id;render()}}}
 render();
