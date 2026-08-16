@@ -1,0 +1,20 @@
+const IMG={a:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80',b:'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&w=900&q=80',c:'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=900&q=80',d:'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=900&q=80'};
+const pic=(src,cls='')=>`<img class="${cls}" src="${src}" alt="sample visual">`;
+export function mediaPreview(f){const id=f.id||'';
+if(id==='scroll-horizontal-gallery')return `<div class="pv media-gallery"><div>${pic(IMG.a)}${pic(IMG.b)}${pic(IMG.c)}${pic(IMG.d)}</div><b>HORIZONTAL GALLERY</b></div>`;
+if(id==='cursor-image-trail')return `<div class="pv media-trail">${pic(IMG.a)}${pic(IMG.b)}${pic(IMG.c)}${pic(IMG.d)}</div>`;
+if(id.includes('text-image-interlock'))return `<div class="pv media-interlock"><b>TYPE</b>${pic(IMG.b)}<strong>IMAGE</strong></div>`;
+if(id.includes('caption-lock'))return `<div class="pv media-caption"><div><small>01 / PRODUCT</small><b>LOCKED CAPTION</b><p>Copy stays fixed while the visual changes.</p></div>${pic(IMG.c)}</div>`;
+if(id.includes('image-displacement'))return `<div class="pv media-displace">${pic(IMG.a,'base')}${pic(IMG.d,'top')}<b>DISPLACEMENT</b></div>`;
+if(id.includes('zoom-pan'))return `<div class="pv media-zoompan">${pic(IMG.b)}<i></i><b>ZOOM / PAN</b></div>`;
+if(id.includes('video-play'))return `<div class="pv media-video">${pic(IMG.c)}<button>▶</button><b>HOVER TO PLAY</b></div>`;
+if(id.includes('slice-swap'))return `<div class="pv media-slices">${Array.from({length:6},(_,i)=>`<i style="--i:${i};background-image:url('${i%2?IMG.a:IMG.d}')"></i>`).join('')}</div>`;
+if(id.includes('depth-layers'))return `<div class="pv media-depth">${pic(IMG.a,'back')}${pic(IMG.b,'mid')}${pic(IMG.c,'front')}<b>DEPTH LAYERS</b></div>`;
+if(id.includes('carousel-inertia'))return `<div class="pv media-carousel">${pic(IMG.a)}${pic(IMG.b)}${pic(IMG.c)}${pic(IMG.d)}</div>`;
+if(id.includes('globe-gallery'))return `<div class="pv media-globe">${[IMG.a,IMG.b,IMG.c,IMG.d,IMG.a,IMG.b].map((s,i)=>`<img style="--i:${i}" src="${s}" alt="sample visual">`).join('')}</div>`;
+if(id.includes('before-after'))return `<div class="pv media-beforeafter"><div class="before">${pic(IMG.a)}</div><div class="after">${pic(IMG.d)}</div><i></i><b>BEFORE</b><strong>AFTER</strong></div>`;
+if(id.includes('xray'))return `<div class="pv media-xray">${pic(IMG.b,'surface')}${pic(IMG.c,'inside')}<i></i><b>X-RAY</b></div>`;
+if(id.includes('lens-magnify'))return `<div class="pv media-lens">${pic(IMG.a)}<i>${pic(IMG.a)}</i><b>MAGNIFY</b></div>`;
+if(id.includes('family-media-scroll'))return `<div class="pv media-family">${pic(IMG.a)}${pic(IMG.b)}${pic(IMG.c)}<b>MEDIA SCROLL</b></div>`;
+return null;
+}
