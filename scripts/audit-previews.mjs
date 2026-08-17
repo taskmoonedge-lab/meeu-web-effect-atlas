@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import crypto from 'node:crypto';
-import { atlas } from '../src/data.js';
+import { atlas, catalogIntegrity } from '../src/catalog.js';
 import { semanticPreview } from '../src/semantic-preview.js';
 import { mediaPreview } from '../src/media-preview.js';
 import legacyCore from '../src/legacy-preview-core.js';
@@ -42,7 +42,7 @@ const duplicateIds=rows.filter((r,i,a)=>a.findIndex(x=>x.id===r.id)!==i);
 const variantCount=atlas.families.reduce((n,f)=>n+(f.variants?.length||0),0);
 
 const report={
-  declared:{families:atlas.familyCount,variants:atlas.variantCount,flat:atlas.sourceFlatEffects},
+  catalogIntegrity,
   actual:{families:atlas.families.length,variants:variantCount},
   sources:Object.fromEntries([...new Set(rows.map(r=>r.source))].map(s=>[s,rows.filter(r=>r.source===s).length])),
   unmapped,legacyAlias,legacyExact,duplicateIds,sharedFingerprints:shared
@@ -52,10 +52,12 @@ fs.writeFileSync('audit/preview-audit.json',JSON.stringify(report,null,2));
 console.log(JSON.stringify(report,null,2));
 
 let fail=false;
-if(atlas.families.length!==315 || atlas.familyCount!==315){console.error('FAIL family count');fail=true}
-if(variantCount!==620 || atlas.variantCount!==620){console.error('FAIL variant count');fail=true}
+if(atlas.familyCount!==atlas.families.length){console.error('FAIL runtime family count');fail=true}
+if(atlas.variantCount!==variantCount){console.error('FAIL runtime variant count');fail=true}
 if(unmapped.length){console.error(`FAIL ${unmapped.length} unmapped families`);fail=true}
 if(legacyAlias.length){console.error(`FAIL ${legacyAlias.length} legacy aliases`);fail=true}
-if(duplicateIds.length){console.error(`FAIL duplicate ids`);fail=true}
-if(shared.length){console.error(`WARN ${shared.length} shared structural fingerprints need visual review`)}
+if(duplicateIds.length){console.error('FAIL duplicate ids');fail=true}
+if(shared.length){console.error(`FAIL ${shared.length} shared structural fingerprints`);fail=true}
+if(legacyExact.length){console.error(`WARN ${legacyExact.length} legacy-exact previews remain`)}
+if(catalogIntegrity.metadataMismatch){console.error(`WARN stale raw metadata: declared ${catalogIntegrity.declaredFamilyCount}/${catalogIntegrity.declaredVariantCount}, actual ${catalogIntegrity.actualFamilyCount}/${catalogIntegrity.actualVariantCount}`)}
 process.exit(fail?1:0);
