@@ -1,20 +1,26 @@
 import { atlas as rawAtlas } from './data.js';
+import { expansionFamilies } from './expansion.js';
 
-const actualFamilyCount = rawAtlas.families.length;
-const actualVariantCount = rawAtlas.families.reduce((n,f)=>n+(f.variants?.length||0),0);
+const existingIds=new Set(rawAtlas.families.map(f=>f.id));
+const additions=expansionFamilies.filter(f=>!existingIds.has(f.id));
+const families=[...rawAtlas.families,...additions];
+const actualFamilyCount=families.length;
+const actualVariantCount=families.reduce((n,f)=>n+(f.variants?.length||0),0);
 
-export const catalogIntegrity = {
-  declaredFamilyCount: rawAtlas.familyCount,
-  declaredVariantCount: rawAtlas.variantCount,
-  declaredSourceFlatEffects: rawAtlas.sourceFlatEffects,
+export const catalogIntegrity={
+  declaredFamilyCount:rawAtlas.familyCount,
+  declaredVariantCount:rawAtlas.variantCount,
+  declaredSourceFlatEffects:rawAtlas.sourceFlatEffects,
   actualFamilyCount,
   actualVariantCount,
-  metadataMismatch: rawAtlas.familyCount !== actualFamilyCount || rawAtlas.variantCount !== actualVariantCount
+  addedExpansionFamilies:additions.length,
+  metadataMismatch:rawAtlas.familyCount!==actualFamilyCount||rawAtlas.variantCount!==actualVariantCount
 };
 
-// Runtime/UI must show what actually exists, never stale declared metadata.
-export const atlas = {
+export const atlas={
   ...rawAtlas,
-  familyCount: actualFamilyCount,
-  variantCount: actualVariantCount
+  version:'0.9.0',
+  families,
+  familyCount:actualFamilyCount,
+  variantCount:actualVariantCount
 };
