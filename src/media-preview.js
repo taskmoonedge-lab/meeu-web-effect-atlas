@@ -16,5 +16,17 @@ if(id.includes('before-after'))return `<div class="pv media-beforeafter"><div cl
 if(id.includes('xray'))return `<div class="pv media-xray">${pic(IMG.b,'surface')}${pic(IMG.c,'inside')}<i></i><b>X-RAY</b></div>`;
 if(id.includes('lens-magnify'))return `<div class="pv media-lens">${pic(IMG.a)}<i>${pic(IMG.a)}</i><b>MAGNIFY</b></div>`;
 if(id.includes('family-media-scroll'))return `<div class="pv media-family">${pic(IMG.a)}${pic(IMG.b)}${pic(IMG.c)}<b>MEDIA SCROLL</b></div>`;
+if(id==='transition-shutter-slice')return `<div class="pv exp-shutter">${Array.from({length:8},(_,i)=>`<i style="--i:${i}"></i>`).join('')}<b>SHUTTER</b></div>`;
+if(id==='transition-iris-aperture')return `<div class="pv exp-iris">${pic(IMG.d)}<i></i><b>IRIS</b></div>`;
+if(id==='transition-card-flip')return `<div class="pv exp-flip"><i class="front">SCENE A</i><i class="back">SCENE B</i></div>`;
+if(id==='background-aurora-flow')return `<div class="pv exp-aurora"><i></i><i></i><i></i><b>AURORA</b></div>`;
+if(id==='background-grid-warp')return `<div class="pv exp-grid"><i></i><b>GRID WARP</b></div>`;
+if(id==='background-noise-cloud')return `<div class="pv exp-cloud"><i></i><i></i><i></i><b>NOISE CLOUD</b></div>`;
+if(id==='object-floating-product')return `<div class="pv exp-product"><i>PRODUCT</i><b>FLOAT / TURN</b></div>`;
+if(id==='object-exploded-assembly')return `<div class="pv exp-assembly"><i>1</i><i>2</i><i>3</i><i>4</i><b>ASSEMBLY</b></div>`;
+if(id==='navigation-radial-orbit')return `<div class="pv exp-radial"><b>MENU</b>${Array.from({length:6},(_,i)=>`<i style="--i:${i}">${String(i+1).padStart(2,'0')}</i>`).join('')}</div>`;
+if(id==='navigation-cursor-mega-menu')return `<div class="pv exp-mega"><div><b>WORK</b><b>ABOUT</b><b>CONTACT</b></div>${pic(IMG.b)}<i>VIEW</i></div>`;
+if(id==='loader-orbit-assembly')return `<div class="pv exp-loader-orbit"><b>M</b>${Array.from({length:7},(_,i)=>`<i style="--i:${i}"></i>`).join('')}</div>`;
+if(id==='loader-progress-scan')return `<div class="pv exp-loader-scan"><b>68%</b><i></i><span></span></div>`;
 return null;
 }
