@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Three.js Underwater Perfume Study</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#ff8fc1;color:white;font-family:Inter,system-ui,sans-serif;overflow-x:hidden}body{min-height:240vh}#webgl{position:fixed;inset:0;width:100%;height:100%;display:block}.hud{position:fixed;inset:0;pointer-events:none;padding:28px;display:flex;flex-direction:column;justify-content:space-between;z-index:2}.top{display:flex;justify-content:space-between;align-items:flex-start;font-size:11px;letter-spacing:.14em;text-transform:uppercase}.hero{max-width:720px}.hero h1{font-size:clamp(52px,10vw,145px);line-height:.82;margin:0;font-weight:800;letter-spacing:-.07em}.hero p{max-width:440px;font-size:13px;line-height:1.6;color:#fffbd9;margin:24px 0 0}.pill{border:1px solid #ffffff70;border-radius:999px;padding:8px 12px;backdrop-filter:blur(12px);background:#ffffff10}.scroll{align-self:flex-end;font-size:10px;letter-spacing:.18em}.scroll:after{content:'';display:inline-block;width:70px;height:1px;background:white;margin-left:12px;vertical-align:middle;transform-origin:left;animation:pulse 2s ease-in-out infinite}.tip{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.75;z-index:3;pointer-events:none}@keyframes pulse{50%{transform:scaleX(.3);opacity:.4}}@media(max-width:700px){.hud{padding:18px}.hero h1{font-size:58px}.top{gap:12px}.top>div:last-child{display:none}}
+</style>
+</head>
+<body>
+<canvas id="webgl"></canvas>
+<div class="hud">
+  <div class="top"><div class="pill">REAL WEBGL / THREE.JS</div><div>BLENDER → GLB の代替として primitive mesh で構築</div></div>
+  <div class="hero"><h1>FLOAT<br>OBJECT</h1><p>これはCSSの擬似3Dではなく、Three.jsのPerspectiveCamera・MeshPhysicalMaterial・PointLight・Fog・Particleで描画しています。実際のGLBに置き換える場所も同じです。</p></div>
+  <div class="scroll">SCROLL TO ORBIT</div>
+</div>
+<div class="tip">MOVE POINTER · SCROLL PAGE</div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.179.1/build/three.module.js';
+
+const canvas=document.querySelector('#webgl');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.25;
+
+const scene=new THREE.Scene();
+scene.background=new THREE.Color('#ff8fc1');
+scene.fog=new THREE.FogExp2('#ff8fc1',0.11);
+
+const camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,.1,100);
+camera.position.set(0,.2,6.8);
+scene.add(camera);
+
+const world=new THREE.Group();scene.add(world);
+
+// Product group: this is the object that would become gltf.scene after GLBLoader.
+const product=new THREE.Group();
+product.rotation.set(-.08,.35,.06);
+world.add(product);
+
+const glassMat=new THREE.MeshPhysicalMaterial({
+  color:'#ffd4e6',metalness:0,roughness:.08,transmission:.78,transparent:true,opacity:.85,
+  thickness:1.2,ior:1.42,clearcoat:1,clearcoatRoughness:.06
+});
+const liquidMat=new THREE.MeshPhysicalMaterial({color:'#ff4d8f',roughness:.18,metalness:.05,transmission:.1,transparent:true,opacity:.72});
+const metalMat=new THREE.MeshStandardMaterial({color:'#f8d48c',metalness:.9,roughness:.2});
+const labelMat=new THREE.MeshStandardMaterial({color:'#fff8df',roughness:.7,metalness:0});
+
+// Bottle shell
+const bottle=new THREE.Mesh(new THREE.BoxGeometry(2.05,2.75,.92,8,8,4),glassMat);
+bottle.geometry.translate(0,0,0);product.add(bottle);
+// Inner liquid block
+const liquid=new THREE.Mesh(new THREE.BoxGeometry(1.78,2.2,.70),liquidMat);liquid.position.y=-.15;product.add(liquid);
+// Neck + cap
+const neck=new THREE.Mesh(new THREE.CylinderGeometry(.34,.40,.55,48),glassMat);neck.position.y=1.62;product.add(neck);
+const cap=new THREE.Mesh(new THREE.CylinderGeometry(.55,.55,.68,64),metalMat);cap.position.y=2.19;product.add(cap);
+const capRing=new THREE.Mesh(new THREE.TorusGeometry(.48,.045,16,64),new THREE.MeshStandardMaterial({color:'#fff3c0',metalness:1,roughness:.12}));capRing.rotation.x=Math.PI/2;capRing.position.y=1.88;product.add(capRing);
+// Label in front
+const label=new THREE.Mesh(new THREE.PlaneGeometry(1.25,.78),labelMat);label.position.set(0,-.05,.471);product.add(label);
+const labelLine=new THREE.Mesh(new THREE.PlaneGeometry(.72,.035),new THREE.MeshBasicMaterial({color:'#1d1630'}));labelLine.position.set(0,.04,.475);product.add(labelLine);
+const labelLine2=labelLine.clone();labelLine2.scale.x=.55;labelLine2.position.y=-.12;product.add(labelLine2);
+
+// Floor shadow / caustic receiver
+const floor=new THREE.Mesh(new THREE.CircleGeometry(4.8,96),new THREE.MeshStandardMaterial({color:'#f85fa4',roughness:.82,metalness:0,transparent:true,opacity:.55}));
+floor.rotation.x=-Math.PI/2;floor.position.y=-2.4;scene.add(floor);
+
+// Lights
+scene.add(new THREE.HemisphereLight('#ffe5f0','#57205f',2.1));
+const key=new THREE.PointLight('#fff1ae',35,15,2);key.position.set(3.2,4.8,4.2);scene.add(key);
+const rim=new THREE.PointLight('#5de7ff',28,12,2);rim.position.set(-4,-.8,2);scene.add(rim);
+const pink=new THREE.PointLight('#ff3f9f',20,10,2);pink.position.set(2,-3,-2);scene.add(pink);
+
+// Bubble / plankton particles
+const count=420;const pos=new Float32Array(count*3);const sizes=new Float32Array(count);
+for(let i=0;i<count;i++){pos[i*3]=(Math.random()-.5)*13;pos[i*3+1]=(Math.random()-.5)*10;pos[i*3+2]=(Math.random()-.5)*10;sizes[i]=Math.random()}
+const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(pos,3));
+const pm=new THREE.PointsMaterial({color:'#fff5e8',size:.025,transparent:true,opacity:.62,depthWrite:false,blending:THREE.AdditiveBlending});
+const particles=new THREE.Points(pg,pm);scene.add(particles);
+
+// Caustics-like moving rings
+const caustics=new THREE.Group();scene.add(caustics);
+for(let i=0;i<7;i++){
+  const r=new THREE.Mesh(new THREE.TorusGeometry(.9+i*.27,.018,10,100),new THREE.MeshBasicMaterial({color:'#ffe9a8',transparent:true,opacity:.12,blending:THREE.AdditiveBlending,depthWrite:false}));
+  r.rotation.x=Math.PI/2;r.position.set((i-3)*.23,-2.35,(i%2-.5)*.5);r.scale.y=.52;caustics.add(r)
+}
+
+let mx=0,my=0,targetX=0,targetY=0,scrollP=0;
+addEventListener('pointermove',e=>{targetX=(e.clientX/innerWidth-.5)*2;targetY=(e.clientY/innerHeight-.5)*2});
+addEventListener('scroll',()=>{scrollP=scrollY/Math.max(1,document.documentElement.scrollHeight-innerHeight)},{passive:true});
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+
+const clock=new THREE.Clock();
+function tick(){
+  const t=clock.getElapsedTime();mx+=(targetX-mx)*.045;my+=(targetY-my)*.045;
+  // Product motion. Replace `product` with `gltf.scene` and the same controls still work.
+  product.position.y=Math.sin(t*.85)*.18 + THREE.MathUtils.lerp(.15,-.35,scrollP);
+  product.rotation.y=t*.18 + scrollP*Math.PI*1.8 + mx*.18;
+  product.rotation.x=-.08 + my*.08 + Math.sin(t*.6)*.025;
+  product.rotation.z=.06 + Math.sin(t*.52)*.045;
+  product.scale.setScalar(THREE.MathUtils.lerp(1,1.38,scrollP));
+  camera.position.x=mx*.35 + Math.sin(scrollP*Math.PI)*.65;
+  camera.position.y=.2-my*.20 + scrollP*.28;
+  camera.position.z=THREE.MathUtils.lerp(6.8,5.15,scrollP);
+  camera.lookAt(0,0,0);
+  particles.rotation.y=t*.012;particles.position.y=(t*.025)%1;
+  caustics.rotation.z=t*.11;caustics.children.forEach((r,i)=>{r.scale.x=1+Math.sin(t*1.2+i)*.12;r.material.opacity=.08+(Math.sin(t*1.4+i)*.5+.5)*.1});
+  key.position.x=3.2+Math.sin(t*.7)*1.4;
+  renderer.render(scene,camera);requestAnimationFrame(tick)
+}
+tick();
+</script>
+</body>
+</html>
